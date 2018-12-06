@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#CALCULATION OF GC CONTENT (GENES)
+# CALCULATION OF GC CONTENT (GENES)
 
 import os
 import logging
