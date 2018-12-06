@@ -16,8 +16,7 @@ def get_option_args():
         )
     args_parser.add_argument(
         'path',
-        default='.',
-        help='Path where look for FASTA files. Default is current working dir',
+        help='Path where look for FASTA files, use . to use current working dir',
         )
     args_parser.add_argument(
         '--tron',
@@ -27,7 +26,12 @@ def get_option_args():
         default=False,
         help='Show trace of activity (Disabled by default)',
         )
-    return args_parser.parse_args()
+    args = args_parser.parse_args()
+    logging.basicConfig(
+        level=logging.INFO if args.tron else logging.ERROR,
+        format='%(asctime)s %(levelname)s %(message)s',
+        )
+    return args
 
 
 if __name__ == '__main__':
@@ -40,12 +44,14 @@ if __name__ == '__main__':
         data = fastalib.read_fasta_file(full_name)
         if args.tron:
             logging.info('Generating output files')
+        num_outputs = 0
         for key in data:
             lines = data[key]
             filename = safe_filename('result_id_{}.fasta'.format(key))
             with open(filename, 'w') as f1:
                 for l in lines:
                     f1.write('{}\n'.format(l))
+            num_outputs += 1
             g, a, t, c = fastalib.count_nucleotydes_gatc(lines)
             filename = safe_filename('result_GC_{}.fasta'.format(key))
             with open(filename, 'w') as f2:
@@ -55,5 +61,9 @@ if __name__ == '__main__':
                 f2.write('Cytosine: {:d}\n'.format(c))
                 p = round(float(c+g)/(a+c+g+t), 9)
                 f2.write('CG proportion: {:9f}\n'.format(p))
+            num_outputs += 1
         if args.tron:
-            logging.info('Finished. {} files processed'.format(len(genomes)))
+            logging.info('Finished: files processed {}, generated {}'.format(
+                len(genomes),
+                num_outputs,
+                ))
